@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing and Temporary Artifacts
+test_e2e.js
+test_*.png
+capture_*.png
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

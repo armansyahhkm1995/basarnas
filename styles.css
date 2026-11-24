@@ -1,0 +1,404 @@
+/* ==========================================================================
+   BASARNAS ROV TRAINER SIMULATOR - FALAH ONE DESIGN SYSTEM THEME
+   Palette: Deep Oceanic Tactical Dark Mode & Marine Gold/Teal
+   ========================================================================== */
+
+:root {
+  /* Oceanic Background Tokens */
+  --bg-deep-abyss: #040d12;
+  --bg-ocean-base: #061318;
+  --bg-panel-dark: #081a20;
+  --bg-panel-elevated: #0c252d;
+  --bg-card-surface: #0a1e24;
+  --bg-card-hover: #0e2b34;
+
+  /* Border & Divider Tokens */
+  --border-subtle: #11343d;
+  --border-medium: #194854;
+  --border-accent: #256776;
+  --border-focus: #14b8a6;
+
+  /* Primary Tactical Accent (Amber Gold) */
+  --color-amber-primary: #f59e0b;
+  --color-amber-light: #fbbf24;
+  --color-amber-glow: rgba(245, 158, 11, 0.25);
+  --color-amber-border: #d97706;
+
+  /* Marine Cyan & Teal Accent */
+  --color-teal-primary: #14b8a6;
+  --color-teal-light: #2dd4bf;
+  --color-teal-glow: rgba(20, 184, 166, 0.25);
+  --color-teal-surface: #0a2f35;
+
+  /* Functional Status Colors */
+  --status-available: #14b8a6;
+  --status-completed: #10b981;
+  --status-running: #f59e0b;
+  --status-danger: #ef4444;
+
+  /* Typography */
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-body: 'Barlow Semi Condensed', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+/* Global Reset & Base */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--bg-deep-abyss);
+  color: #e2e8f0;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  position: relative;
+  background-image: 
+    radial-gradient(circle at 50% 10%, rgba(20, 184, 166, 0.08) 0%, transparent 60%),
+    radial-gradient(circle at 85% 85%, rgba(14, 116, 144, 0.05) 0%, transparent 50%),
+    linear-gradient(to bottom, #040d12, #06151b, #040c10);
+}
+
+/* Subtle Tactical Sonar / Grid Background */
+body::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(20, 184, 166, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(20, 184, 166, 0.03) 1px, transparent 1px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Vignette overlay */
+body::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 100px rgba(2, 6, 9, 0.85);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.app-container {
+  position: relative;
+  z-index: 2;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ==========================================================================
+   FALAH ONE BUTTONS (Tactical Basarnas Theme)
+   ========================================================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+/* Button Primary (Tactical Gold) */
+.btn-primary {
+  background: linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%);
+  color: #061318;
+  border-color: #d97706;
+  box-shadow: 0 2px 10px rgba(245, 158, 11, 0.35);
+}
+.btn-primary:hover {
+  background: linear-gradient(180deg, #fcd34d 0%, #fbbf24 100%);
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.55);
+  transform: translateY(-1px);
+}
+.btn-primary:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 4px rgba(245, 158, 11, 0.3);
+}
+
+/* Button Secondary (Marine Teal Glass) */
+.btn-secondary {
+  background: rgba(13, 148, 136, 0.15);
+  color: #2dd4bf;
+  border-color: #0d9488;
+}
+.btn-secondary:hover {
+  background: rgba(13, 148, 136, 0.3);
+  border-color: #14b8a6;
+  box-shadow: 0 0 12px rgba(20, 184, 166, 0.3);
+  color: #ffffff;
+}
+
+/* Button Outline */
+.btn-outline {
+  background: transparent;
+  color: #94a3b8;
+  border-color: var(--border-medium);
+}
+.btn-outline:hover {
+  border-color: var(--border-focus);
+  color: #e2e8f0;
+  background: rgba(20, 184, 166, 0.08);
+}
+
+/* Button Ghost */
+.btn-ghost {
+  background: transparent;
+  color: #94a3b8;
+}
+.btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+}
+
+/* Button Sizes */
+.btn-sm {
+  height: 32px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+.btn-md {
+  height: 42px;
+  padding: 0 20px;
+  font-size: 15px;
+}
+.btn-lg {
+  height: 48px;
+  padding: 0 28px;
+  font-size: 16px;
+}
+
+/* ==========================================================================
+   FALAH ONE BADGES & TAGS
+   ========================================================================== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 2px;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  line-height: 1;
+}
+
+.badge-teal {
+  background: rgba(20, 184, 166, 0.15);
+  border: 1px solid rgba(20, 184, 166, 0.4);
+  color: #5eead4;
+}
+
+.badge-amber {
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #fbbf24;
+}
+
+.badge-emerald {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #6ee7b7;
+}
+
+.badge-red {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+}
+
+/* Controller Key Helper Badges (LB, RB, A, B, etc.) */
+.gamepad-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 22px;
+  padding: 0 6px;
+  background: #0f3039;
+  border: 1px solid #1f5966;
+  border-radius: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: #38bdf8;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.gamepad-pill.btn-a {
+  background: #064e3b;
+  border-color: #059669;
+  color: #6ee7b7;
+}
+
+.gamepad-pill.btn-b {
+  background: #7f1d1d;
+  border-color: #dc2626;
+  color: #fca5a5;
+}
+
+.gamepad-pill.btn-x {
+  background: #1e3a8a;
+  border-color: #2563eb;
+  color: #93c5fd;
+}
+
+.gamepad-pill.btn-y {
+  background: #78350f;
+  border-color: #d97706;
+  color: #fcd34d;
+}
+
+/* Keyboard Key Badge */
+.kbd-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 24px;
+  padding: 0 7px;
+  background: #0d2830;
+  border: 1px solid #1c525f;
+  border-bottom: 2px solid #143e49;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: #fbbf24;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* ==========================================================================
+   TACTICAL CARDS & CORNER BRACKETS ("SIKU")
+   Catatan: Setap card saat di-hover memiliki outline amber & siku menyala!
+   ========================================================================== */
+.card-tactical {
+  position: relative;
+  background: var(--bg-card-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+/* HOVER UNTUK SEMUA KARTU - OUTLINE AMBER + SHADOW GLOW */
+.card-tactical:hover {
+  background: var(--bg-card-hover) !important;
+  border-color: var(--color-amber-light) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 14px var(--color-amber-glow) !important;
+}
+
+/* Siku / Corner Reticle Brackets */
+.tactical-corner {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 20;
+}
+
+/* Saat kartu di-hover, siku otomatis muncul untuk SEMUA kartu */
+.card-tactical:hover .tactical-corner {
+  opacity: 1 !important;
+}
+
+.corner-tl {
+  top: -1px;
+  left: -1px;
+  border-top: 3px solid var(--color-amber-light);
+  border-left: 3px solid var(--color-amber-light);
+}
+
+.corner-tr {
+  top: -1px;
+  right: -1px;
+  border-top: 3px solid var(--color-amber-light);
+  border-right: 3px solid var(--color-amber-light);
+}
+
+.corner-bl {
+  bottom: -1px;
+  left: -1px;
+  border-bottom: 3px solid var(--color-amber-light);
+  border-left: 3px solid var(--color-amber-light);
+}
+
+.corner-br {
+  bottom: -1px;
+  right: -1px;
+  border-bottom: 3px solid var(--color-amber-light);
+  border-right: 3px solid var(--color-amber-light);
+}
+
+/* ==========================================================================
+   SCROLLBAR & UTILITIES
+   ========================================================================== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(6, 19, 24, 0.8);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-medium);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-teal-primary);
+}
+
+/* Scanline animation */
+.scanlines {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%, 
+    rgba(0, 0, 0, 0.15) 50%
+  );
+  background-size: 100% 4px;
+  z-index: 999;
+  opacity: 0.35;
+}
+
+#report-table-body tr:hover { background-color: #09222a !important; outline: 1px solid var(--color-amber-light); }
+
+/* 3D Simulation WebGL Canvas */
+#sim-canvas-container canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+#sim-pip-viewport canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
