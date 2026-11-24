@@ -275,10 +275,18 @@
   // 4. MEMUAT MODEL 3D ROV SEALION
   // ===========================================================================
   function loadROVSealion() {
+    // 1. Buat model procedural darurat terlebih dahulu agar ROV, kamera, dan lampu sorot langsung aktif seketika
+    createProceduralROV();
+
     const loader = new THREE.GLTFLoader();
     loader.load(
       'assets/rov_sealion.glb',
       function (gltf) {
+        // Hapus model placeholder procedural
+        if (rovModel) {
+          scene.remove(rovModel);
+        }
+
         rovModel = gltf.scene;
         rovModel.scale.set(1.0, 1.0, 1.0);
         rovModel.position.copy(rovPhysics.pos);
@@ -295,8 +303,12 @@
         rovModel.add(lightLeft);
         rovModel.add(lightRight);
         headlights = [lightLeft, lightRight];
+        headlights.forEach((spot) => {
+          if (spot) spot.visible = rovPhysics.isHeadlightsOn;
+        });
 
         // Cari Propeller Baling-Baling untuk Animasi Putar & Sembunyikan Tether Statis GLB
+        thrusterProps = [];
         rovModel.traverse((child) => {
           if (child.name === 'Umbilical_Tether_Cable') {
             child.visible = false;
@@ -306,20 +318,56 @@
           }
         });
 
-        console.log('[SIMULATOR] ROV Sealion 3D Model berhasil dimuat.');
+        console.log('[SIMULATOR] ROV Sealion 3D Model GLB berhasil dimuat.');
         updateObjectivesUI(0, true); // Objektif 1 selesai: ROV siap diluncurkan
       },
       undefined,
       function (err) {
-        console.error('[SIMULATOR] Gagal memuat rov_sealion.glb:', err);
-        if (window.location.protocol === 'file:') {
-          showMissionNotification(
-            'PERINGATAN AKSES 3D GLB',
-            'Browser membatasi muat model 3D pada mode file://. Jalankan file jalankan_launcher.bat agar simulator berjalan via http://localhost:8080 tanpa batasan CORS.'
-          );
-        }
+        console.warn('[SIMULATOR] Mempertahankan model procedural ROV Sealion:', err);
       }
     );
+  }
+
+  function createProceduralROV() {
+    rovModel = new THREE.Group();
+    rovModel.position.copy(rovPhysics.pos);
+
+    // Chassis Kuning Basarnas
+    const bodyGeo = new THREE.BoxGeometry(0.75, 0.45, 1.1);
+    const bodyMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.35, metalness: 0.2 });
+    const bodyMesh = new THREE.Mesh(bodyGeo, bodyMat);
+    rovModel.add(bodyMesh);
+
+    // Frame Pelindung Abu-abu Gelap
+    const frameGeo = new THREE.BoxGeometry(0.85, 0.52, 1.15);
+    const frameMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.7, metalness: 0.8 });
+    const frameMesh = new THREE.Mesh(frameGeo, frameMat);
+    rovModel.add(frameMesh);
+
+    // Kaca Kamera Dome Depan (-Z)
+    const domeGeo = new THREE.SphereGeometry(0.12, 16, 16);
+    const domeMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.1, metalness: 0.9, transparent: true, opacity: 0.7 });
+    const domeMesh = new THREE.Mesh(domeGeo, domeMat);
+    domeMesh.position.set(0, 0.02, -0.58);
+    rovModel.add(domeMesh);
+
+    // Pasang Lampu Sorot LED Depan
+    const lightLeft = createHeadlightSpot(-0.24, 0.16, -0.55);
+    const lightRight = createHeadlightSpot(0.24, 0.16, -0.55);
+    rovModel.add(lightLeft);
+    rovModel.add(lightRight);
+    headlights = [lightLeft, lightRight];
+    headlights.forEach((spot) => {
+      if (spot) spot.visible = rovPhysics.isHeadlightsOn;
+    });
+
+    // Pasang Kamera Depan Onboard (FPV)
+    rovModel.add(rovCamera);
+    rovCamera.position.set(0, 0.02, -0.62);
+    rovCamera.rotation.set(0, 0, 0);
+
+    scene.add(rovModel);
+    updateObjectivesUI(0, true);
   }
 
   function createHeadlightSpot(x, y, z) {
@@ -508,30 +556,55 @@
   // ===========================================================================
   // 8. INPUT LISTENERS (KEYBOARD & GAMEPAD XBOX)
   // ===========================================================================
-  function setupInputListeners() {
-    window.addEventListener('keydown', (e) => {
-      keys[e.code] = true;
+  let isInputListenersAttached = false;
 
-      // Saklar Lampu LED (L)
-      if (e.code === 'KeyL') {
+  function setupInputListeners() {
+    if (isInputListenersAttached) return;
+    isInputListenersAttached = true;
+
+    window.addEventListener('keydown', (e) => {
+      // Hanya tangkap input jika simulasi sedang berjalan
+      if (!isRunning) return;
+
+      const code = e.code || '';
+      const key = (e.key || '').toLowerCase();
+
+      keys[code] = true;
+      if (key) keys[key] = true;
+
+      // Cegah eksekusi berulang jika tombol ditahan (e.repeat)
+      if (e.repeat) return;
+
+      // 1. Saklar Lampu LED (L)
+      if (code === 'KeyL' || key === 'l') {
+        e.preventDefault();
         toggleHeadlights();
       }
-      // Toggle Kamera (C)
-      if (e.code === 'KeyC') {
+
+      // 2. Toggle Kamera Chase / FPV (C)
+      if (code === 'KeyC' || key === 'c') {
+        e.preventDefault();
         toggleCameraMode();
       }
-      // Cakar Manipulator (Space)
-      if (e.code === 'Space') {
+
+      // 3. Cakar Manipulator (Spasi)
+      if (code === 'Space' || key === ' ' || key === 'spacebar') {
+        e.preventDefault();
         toggleClawClamp();
       }
-      // Tombol Esc untuk Pause/Exit
-      if (e.code === 'Escape') {
+
+      // 4. Tombol Esc untuk Pause/Exit
+      if (code === 'Escape' || key === 'escape') {
+        e.preventDefault();
         handlePauseOrExit();
       }
     });
 
     window.addEventListener('keyup', (e) => {
-      keys[e.code] = false;
+      const code = e.code || '';
+      const key = (e.key || '').toLowerCase();
+      keys[code] = false;
+      if (key) keys[key] = false;
     });
   }
 
@@ -580,9 +653,24 @@
   function toggleHeadlights() {
     rovPhysics.isHeadlightsOn = !rovPhysics.isHeadlightsOn;
     headlights.forEach((spot) => {
-      spot.visible = rovPhysics.isHeadlightsOn;
+      if (spot) spot.visible = rovPhysics.isHeadlightsOn;
     });
-    updateHUDStatusText('sim-hud-light-status', rovPhysics.isHeadlightsOn ? 'ON (8.5k lm)' : 'OFF');
+
+    const lightBadge = document.getElementById('sim-hud-light-status');
+    if (lightBadge) {
+      if (rovPhysics.isHeadlightsOn) {
+        lightBadge.textContent = 'ON (8.5k lm)';
+        lightBadge.className = 'badge badge-teal font-mono text-[10px]';
+      } else {
+        lightBadge.textContent = 'OFF';
+        lightBadge.className = 'badge bg-slate-800 text-slate-400 font-mono text-[10px]';
+      }
+    }
+
+    showMissionNotification(
+      'LAMPU LED ROV (L)',
+      rovPhysics.isHeadlightsOn ? 'Lampu sorot LED aktif (8.500 Lumens).' : 'Lampu sorot LED dimatikan.'
+    );
   }
 
   function toggleCameraMode() {
@@ -592,13 +680,21 @@
     const crosshair = document.getElementById('sim-fpv-crosshair');
 
     if (activeCameraMode === 'fpv') {
-      if (camBadge) camBadge.textContent = 'ROV CAM (FPV)';
+      if (camBadge) {
+        camBadge.textContent = 'ROV CAM (FPV)';
+        camBadge.className = 'badge bg-[#082933] text-cyan-300 font-mono text-[10px]';
+      }
       if (pipLabel) pipLabel.textContent = 'TAMPILAN 3D';
       if (crosshair) crosshair.classList.remove('hidden');
+      showMissionNotification('KAMERA ROV (C)', 'Beralih ke Kamera Depan Onboard (FPV).');
     } else {
-      if (camBadge) camBadge.textContent = 'CHASE CAM (3RD)';
+      if (camBadge) {
+        camBadge.textContent = 'CHASE CAM (3RD)';
+        camBadge.className = 'badge bg-amber-950/80 text-amber-300 font-mono text-[10px] border border-amber-600/50';
+      }
       if (pipLabel) pipLabel.textContent = 'KAMERA DEPAN (FPV)';
       if (crosshair) crosshair.classList.add('hidden');
+      showMissionNotification('KAMERA ROV (C)', 'Beralih ke Kamera Luar (Third-Person Chase Cam).');
     }
   }
 
@@ -607,26 +703,38 @@
 
     const clawBadge = document.getElementById('sim-hud-claw-status');
     if (clawBadge) {
-      clawBadge.textContent = rovPhysics.isClawClamped ? 'MENJEPIT (CLAMPED)' : 'TERBUKA (OPEN)';
-      clawBadge.className = rovPhysics.isClawClamped ? 'badge badge-emerald' : 'badge badge-amber';
+      if (rovPhysics.isClawClamped) {
+        clawBadge.textContent = 'MENJEPIT (CLAMPED)';
+        clawBadge.className = 'badge badge-emerald font-mono text-[10px]';
+      } else {
+        clawBadge.textContent = 'TERBUKA (OPEN)';
+        clawBadge.className = 'badge badge-amber font-mono text-[10px]';
+      }
     }
 
     // Periksa apakah dekat dengan Black Box untuk proses evakuasi
     if (blackBoxModel && !rovPhysics.isTargetRecovered) {
       const distToTarget = rovPhysics.pos.distanceTo(blackBoxModel.position);
-      if (distToTarget < 2.2 && rovPhysics.isClawClamped) {
+      if (distToTarget < 3.8 && rovPhysics.isClawClamped) {
         // Berhasil menjepit Black Box!
         rovPhysics.isTargetRecovered = true;
-        blackBoxModel.parent = rovModel;
-        // Posisikan tepat di cakar manipulator ROV depan (-Z)
-        blackBoxModel.position.set(0.16, -0.22, -0.95);
-        blackBoxModel.rotation.set(0, 0, 0);
+        if (rovModel) {
+          rovModel.add(blackBoxModel);
+          blackBoxModel.position.set(0.16, -0.22, -0.95);
+          blackBoxModel.rotation.set(0, 0, 0);
+        }
 
         // Update Objektif 3: Berhasil mengambil black box
         updateObjectivesUI(2, true);
         showMissionNotification('BLACK BOX BERHASIL DIAMBIL!', 'Bawa ROV kembali ke titik peluncuran permukaan (Radius 5m dari titik awal).');
+        return;
       }
     }
+
+    showMissionNotification(
+      'CAKAR MANIPULATOR (SPASI)',
+      rovPhysics.isClawClamped ? 'Cakar manipulator ditutup / menjepit.' : 'Cakar manipulator dibuka.'
+    );
   }
 
   // ===========================================================================
@@ -670,20 +778,20 @@
     rovPhysics.thrustYaw = 0;
 
     // Maju / Mundur (W / S)
-    if (keys['KeyW']) rovPhysics.thrustSurge += 1.0;
-    if (keys['KeyS']) rovPhysics.thrustSurge -= 1.0;
+    if (keys['KeyW'] || keys['w']) rovPhysics.thrustSurge += 1.0;
+    if (keys['KeyS'] || keys['s']) rovPhysics.thrustSurge -= 1.0;
 
     // Geser Lateral (A / D)
-    if (keys['KeyA']) rovPhysics.thrustSway -= 1.0;
-    if (keys['KeyD']) rovPhysics.thrustSway += 1.0;
+    if (keys['KeyA'] || keys['a']) rovPhysics.thrustSway -= 1.0;
+    if (keys['KeyD'] || keys['d']) rovPhysics.thrustSway += 1.0;
 
     // Turun / Naik (Q / E)
-    if (keys['KeyQ']) rovPhysics.thrustHeave -= 1.0; // Turun ke kedalaman
-    if (keys['KeyE']) rovPhysics.thrustHeave += 1.0; // Naik ke permukaan
+    if (keys['KeyQ'] || keys['q']) rovPhysics.thrustHeave -= 1.0; // Turun ke kedalaman
+    if (keys['KeyE'] || keys['e']) rovPhysics.thrustHeave += 1.0; // Naik ke permukaan
 
     // Putar Haluan (Panah Kiri / Kanan)
-    if (keys['ArrowLeft']) rovPhysics.thrustYaw += 1.0;
-    if (keys['ArrowRight']) rovPhysics.thrustYaw -= 1.0;
+    if (keys['ArrowLeft'] || keys['arrowleft']) rovPhysics.thrustYaw += 1.0;
+    if (keys['ArrowRight'] || keys['arrowright']) rovPhysics.thrustYaw -= 1.0;
   }
 
   function updateROVPhysics() {

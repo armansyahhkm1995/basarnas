@@ -306,6 +306,9 @@ function navigateTo(screenId, param = null) {
     if (window.startROVSimulation) {
       window.startROVSimulation(selectedScenario);
     }
+    const simPage = document.getElementById('page-simulasi');
+    if (simPage) simPage.focus();
+    window.focus();
   }
 
   // Refresh Lucide Icons
