@@ -606,6 +606,33 @@
       keys[code] = false;
       if (key) keys[key] = false;
     });
+
+    // 5. Mouse Drag Steering (Klik tahan & geser mouse untuk memutar haluan ROV secara instan & halus)
+    let isPointerDragging = false;
+    let lastPointerX = 0;
+
+    window.addEventListener('pointerdown', (e) => {
+      if (!isRunning) return;
+      if (e.target.closest('button') || e.target.closest('#sim-hud-objectives-panel')) return;
+      isPointerDragging = true;
+      lastPointerX = e.clientX;
+    });
+
+    window.addEventListener('pointermove', (e) => {
+      if (!isRunning || !isPointerDragging) return;
+      const deltaX = e.clientX - lastPointerX;
+      lastPointerX = e.clientX;
+      // Geser mouse ke kanan -> membelokkan haluan ROV ke kanan
+      rovPhysics.heading -= deltaX * 0.0055;
+    });
+
+    window.addEventListener('pointerup', () => {
+      isPointerDragging = false;
+    });
+
+    window.addEventListener('pointercancel', () => {
+      isPointerDragging = false;
+    });
   }
 
   function pollGamepadInput() {
@@ -777,21 +804,37 @@
     rovPhysics.thrustHeave = 0;
     rovPhysics.thrustYaw = 0;
 
-    // Maju / Mundur (W / S)
-    if (keys['KeyW'] || keys['w']) rovPhysics.thrustSurge += 1.0;
-    if (keys['KeyS'] || keys['s']) rovPhysics.thrustSurge -= 1.0;
+    // Maju / Mundur (W / S atau Panah Atas / Bawah)
+    if (keys['KeyW'] || keys['w'] || keys['ArrowUp'] || keys['arrowup']) rovPhysics.thrustSurge += 1.0;
+    if (keys['KeyS'] || keys['s'] || keys['ArrowDown'] || keys['arrowdown']) rovPhysics.thrustSurge -= 1.0;
 
-    // Geser Lateral (A / D)
-    if (keys['KeyA'] || keys['a']) rovPhysics.thrustSway -= 1.0;
-    if (keys['KeyD'] || keys['d']) rovPhysics.thrustSway += 1.0;
+    // Deteksi tombol Shift
+    const isShiftPressed = keys['ShiftLeft'] || keys['ShiftRight'] || keys['shift'];
+
+    // KONTROL BELOK HALUAN vs GESER LATERAL:
+    // 1. Tombol A & D: Langsung membelokkan haluan ROV ke Kiri & Kanan!
+    // 2. Tombol SHIFT + A / D: Berfungsi geser menyamping (lateral strafe).
+    // 3. Tombol Z / X: Alternatif tombol khusus geser menyamping murni.
+    // 4. Tombol Panah Kiri / Kanan (← / →): Juga membelokkan haluan ROV.
+    if (isShiftPressed) {
+      if (keys['KeyA'] || keys['a']) rovPhysics.thrustSway -= 1.0; // Geser Kiri
+      if (keys['KeyD'] || keys['d']) rovPhysics.thrustSway += 1.0; // Geser Kanan
+    } else {
+      if (keys['KeyA'] || keys['a']) rovPhysics.thrustYaw += 1.0; // Belok Kiri
+      if (keys['KeyD'] || keys['d']) rovPhysics.thrustYaw -= 1.0; // Belok Kanan
+    }
+
+    // Tombol Alternatif Geser Lateral Murni (Z & X)
+    if (keys['KeyZ'] || keys['z']) rovPhysics.thrustSway -= 1.0;
+    if (keys['KeyX'] || keys['x']) rovPhysics.thrustSway += 1.0;
 
     // Turun / Naik (Q / E)
     if (keys['KeyQ'] || keys['q']) rovPhysics.thrustHeave -= 1.0; // Turun ke kedalaman
     if (keys['KeyE'] || keys['e']) rovPhysics.thrustHeave += 1.0; // Naik ke permukaan
 
-    // Putar Haluan (Panah Kiri / Kanan)
-    if (keys['ArrowLeft'] || keys['arrowleft']) rovPhysics.thrustYaw += 1.0;
-    if (keys['ArrowRight'] || keys['arrowright']) rovPhysics.thrustYaw -= 1.0;
+    // Putar Haluan via Panah Kiri / Kanan (← / →)
+    if (keys['ArrowLeft'] || keys['arrowleft']) rovPhysics.thrustYaw += 1.0; // Belok Kiri
+    if (keys['ArrowRight'] || keys['arrowright']) rovPhysics.thrustYaw -= 1.0; // Belok Kanan
   }
 
   function updateROVPhysics() {
