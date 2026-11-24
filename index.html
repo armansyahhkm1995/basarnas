@@ -1384,7 +1384,6 @@
                   REC <span id="sim-hud-timer">00:00</span>
                 </span>
                 <span class="text-slate-600">|</span>
-                <span id="sim-hud-code" class="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-bold border border-amber-500/40 text-[11px]">SKN-02</span>
                 <span id="sim-hud-title" class="font-display font-bold text-slate-100 tracking-wide text-xs uppercase">PEMULIHAN BLACK BOX PESAWAT</span>
               </div>
 
@@ -1395,14 +1394,14 @@
                 <span id="sim-banner-obj-text" class="text-slate-200 font-body text-xs font-medium">Dekati black box tanpa tether terbelit</span>
               </div>
 
-              <!-- Right: Real-time Tactical Clock & Menu Button -->
+              <!-- Right: Real-time Tactical Clock & Exit Simulation Button -->
               <div class="flex items-center gap-4">
                 <span class="text-slate-300 font-mono text-xs flex items-center gap-1.5">
                   <i data-lucide="clock" class="w-3.5 h-3.5 text-teal-400"></i>
                   <span id="sim-realtime-clock">12:48</span>
                 </span>
-                <button onclick="window.exitROVSimulation()" title="Pengaturan & Keluar Simulasi" class="w-7 h-7 rounded bg-[#0b333e] hover:bg-[#124b5c] border border-[#175263] flex items-center justify-center text-teal-300 cursor-pointer transition-all shadow-md">
-                  <i data-lucide="menu" class="w-4 h-4"></i>
+                <button onclick="window.exitROVSimulation()" title="Keluar Simulasi" class="w-7 h-7 rounded bg-[#0b333e] hover:bg-[#124b5c] border border-[#175263] flex items-center justify-center text-teal-300 hover:text-amber-400 cursor-pointer transition-all shadow-md">
+                  <i data-lucide="log-out" class="w-4 h-4"></i>
                 </button>
               </div>
             </div>
@@ -1445,7 +1444,7 @@
           </div>
 
           <!-- HUD FLOATING OBJECTIVES CHECKLIST (HUD KANAN ATAS) -->
-          <div id="sim-hud-objectives-panel" class="absolute top-[108px] right-6 z-30 w-[340px] bg-[#020b10]/90 backdrop-blur-md border border-[#115e59] rounded-sm p-3.5 shadow-2xl pointer-events-auto">
+          <div id="sim-hud-objectives-panel" class="absolute top-[160px] right-6 z-30 w-[340px] bg-[#020b10]/90 backdrop-blur-md border border-[#115e59] rounded-sm p-3.5 shadow-2xl pointer-events-auto">
             <div class="flex items-center justify-between pb-2 mb-2.5 border-b border-[#11343d]">
               <div class="flex items-center gap-2">
                 <i data-lucide="crosshair" class="w-4 h-4 text-amber-400"></i>
@@ -1586,8 +1585,8 @@
 
         </div>
 
-        <!-- NOTIFICATION TOAST POPUP -->
-        <div id="sim-mission-notif" class="hidden absolute top-20 left-1/2 -translate-x-1/2 z-30 bg-[#061e25]/95 border-2 border-amber-400 rounded-lg p-4 shadow-[0_0_30px_rgba(245,158,11,0.35)] backdrop-blur max-w-md pointer-events-auto transition-all animate-bounce">
+        <!-- NOTIFICATION TOAST POPUP (CENTER MODAL) -->
+        <div id="sim-mission-notif" class="hidden absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 bg-[#061e25]/95 border-2 border-amber-400 rounded-lg p-5 shadow-[0_0_50px_rgba(245,158,11,0.5)] backdrop-blur max-w-md pointer-events-auto transition-all animate-bounce">
           <div class="flex items-start gap-3">
             <i data-lucide="info" class="w-6 h-6 text-amber-400 shrink-0"></i>
             <div>
@@ -1597,8 +1596,8 @@
           </div>
         </div>
 
-        <!-- TETHER LIMIT WARNING BANNER -->
-        <div id="sim-tether-warning" class="hidden absolute top-24 left-1/2 -translate-x-1/2 z-30 bg-red-950/90 border border-red-500 rounded px-6 py-2.5 text-red-200 font-mono font-bold text-xs uppercase tracking-widest shadow-2xl animate-pulse">
+        <!-- TETHER LIMIT WARNING BANNER (CENTER DANGER MODAL) -->
+        <div id="sim-tether-warning" class="hidden absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 bg-red-950/95 border-2 border-red-500 rounded-lg px-8 py-5 text-red-200 font-mono font-bold text-xs uppercase tracking-widest shadow-[0_0_60px_rgba(239,68,68,0.6)] backdrop-blur animate-pulse text-center max-w-lg">
           ⚠️ BATAS MAKSIMAL KABEL TETHER TERCAPAI (50 METER) - ROV TERTARIK
         </div>
 

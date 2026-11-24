@@ -1270,10 +1270,12 @@
     const depthEl = document.getElementById('sim-hud-depth');
     if (depthEl) depthEl.textContent = `${depthMeters.toFixed(1).replace('.', ',')} m`;
 
-    // 2. Heading Kompas (0 - 360 derajat) & Canvas Tape Kompas
-    let deg = Math.round(THREE.MathUtils.radToDeg(rovPhysics.heading)) % 360;
-    if (deg < 0) deg += 360;
-    drawCompassTape(deg);
+    // 2. Heading Kompas Maritim (0 - 360 derajat) & Canvas Tape Kompas (Ruler)
+    // Arah maritim: Belok Kanan = menuju Timur (0° -> 90°), Tape bergerak ke KIRI.
+    // Belok Kiri = menuju Barat (0° -> 270°), Tape bergerak ke KANAN.
+    let maritimeHeading = Math.round(-THREE.MathUtils.radToDeg(rovPhysics.heading)) % 360;
+    if (maritimeHeading < 0) maritimeHeading += 360;
+    drawCompassTape(maritimeHeading);
 
     // 3. Roll & Pitch Telemetri & Canvas Attitude Indicator
     let rollDeg = Math.round(THREE.MathUtils.radToDeg(rovPhysics.roll));
@@ -1307,17 +1309,45 @@
       clockEl.textContent = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     }
 
-    // 7. Koordinat GPS (Terupdate halus sesuai perpindahan ROV)
-    const latSec = (12.0 + (rovPhysics.pos.z * 0.05)).toFixed(1);
-    const lonSec = (33.0 + (rovPhysics.pos.x * 0.05)).toFixed(1);
+    // 7. Koordinat GPS (Terupdate aktif & dinamis real-time sesuai pergerakan ROV)
+    // Koordinat dasar: 6°07'12.0" S, 106°48'33.0" E
+    // 1 meter perpindahan ROV = ~0.08 detik busur untuk visualisasi aktif responsif
+    const baseLatDeg = 6;
+    const baseLatMin = 7;
+    let totalLatSec = 12.0 + (rovPhysics.pos.z * 0.08); // +Z (Selatan/Mundur) menambah Lintang S
+    let latMin = baseLatMin;
+    let latDeg = baseLatDeg;
+    while (totalLatSec >= 60.0) {
+      totalLatSec -= 60.0;
+      latMin += 1;
+    }
+    while (totalLatSec < 0.0) {
+      totalLatSec += 60.0;
+      latMin -= 1;
+    }
+
+    const baseLonDeg = 106;
+    const baseLonMin = 48;
+    let totalLonSec = 33.0 + (rovPhysics.pos.x * 0.08); // +X (Timur/Kanan) menambah Bujur E
+    let lonMin = baseLonMin;
+    let lonDeg = baseLonDeg;
+    while (totalLonSec >= 60.0) {
+      totalLonSec -= 60.0;
+      lonMin += 1;
+    }
+    while (totalLonSec < 0.0) {
+      totalLonSec += 60.0;
+      lonMin -= 1;
+    }
+
     const latEl = document.getElementById('sim-gps-lat');
     const lonEl = document.getElementById('sim-gps-lon');
-    if (latEl) latEl.textContent = `6°07'${latSec}" S`;
-    if (lonEl) lonEl.textContent = `106°48'${lonSec}" E`;
+    if (latEl) latEl.textContent = `${latDeg}°${String(latMin).padStart(2, '0')}'${totalLatSec < 10 ? '0' : ''}${totalLatSec.toFixed(1)}" S`;
+    if (lonEl) lonEl.textContent = `${lonDeg}°${String(lonMin).padStart(2, '0')}'${totalLonSec < 10 ? '0' : ''}${totalLonSec.toFixed(1)}" E`;
   }
 
   // ===========================================================================
-  // CANVAS COMPASS TAPE (IDENTIK FIGMA)
+  // CANVAS COMPASS TAPE / RULER (IDENTIK FIGMA)
   // ===========================================================================
   function drawCompassTape(headingDeg) {
     const canvas = document.getElementById('compass-tape-canvas');
@@ -1358,7 +1388,7 @@
           ctx.lineWidth = 1.2;
           ctx.beginPath();
           ctx.moveTo(x, 2);
-          ctx.lineTo(x, 12);
+          ctx.lineTo(x, 10);
           ctx.stroke();
 
           // Cardinal labels
@@ -1369,25 +1399,25 @@
           else if (normDeg === 270) label = 'B';
 
           ctx.fillStyle = (normDeg % 90 === 0) ? '#38bdf8' : '#94a3b8';
-          ctx.fillText(label, x, 24);
+          ctx.fillText(label, x, 22);
         } else {
           // Minor tick
           ctx.strokeStyle = '#1e4c59';
           ctx.lineWidth = 1;
           ctx.beginPath();
           ctx.moveTo(x, 2);
-          ctx.lineTo(x, 7);
+          ctx.lineTo(x, 6);
           ctx.stroke();
         }
       }
     }
 
-    // Center indicator (Yellow Triangle ▼ and Degree readout)
+    // Center indicator (Yellow Triangle ▼ and Degree readout, identik Figma)
     ctx.fillStyle = '#f59e0b';
     ctx.beginPath();
-    ctx.moveTo(centerX - 4, 3);
-    ctx.lineTo(centerX + 4, 3);
-    ctx.lineTo(centerX, 8);
+    ctx.moveTo(centerX - 3.5, 25);
+    ctx.lineTo(centerX + 3.5, 25);
+    ctx.lineTo(centerX, 29);
     ctx.closePath();
     ctx.fill();
 
@@ -1395,7 +1425,7 @@
     const currentNorm = Math.round((headingDeg % 360 + 360) % 360);
     ctx.font = 'bold 10px "JetBrains Mono", monospace';
     ctx.fillStyle = '#f59e0b';
-    ctx.fillText(`${String(currentNorm).padStart(3, '0')}°`, centerX, 36);
+    ctx.fillText(`${String(currentNorm).padStart(3, '0')}°`, centerX, 39);
   }
 
   // ===========================================================================
